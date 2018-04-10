@@ -12,7 +12,7 @@ import java.util.*
 internal class Printer(private val logger: Logger) {
     private val logList = LinkedList<String>()
 
-    private fun flush(builder: Builder, isRequest: Boolean) {
+    private fun flush(builder: LoggingInterceptor.Builder, isRequest: Boolean) {
         val type = builder.type
         val tag = builder.getTag(isRequest)
         var i = 0
@@ -45,7 +45,7 @@ internal class Printer(private val logger: Logger) {
         }
     }
 
-    fun printJsonRequest(builder: Builder, request: Request) {
+    fun printJsonRequest(builder: LoggingInterceptor.Builder, request: Request) {
         val requestBody = LINE_SEPARATOR + BODY_TAG + LINE_SEPARATOR + bodyToString(request)
 
         if (builder.decoration) {
@@ -65,7 +65,7 @@ internal class Printer(private val logger: Logger) {
         flush(builder, true)
     }
 
-    fun printJsonResponse(builder: Builder, chainMs: Long, isSuccessful: Boolean,
+    fun printJsonResponse(builder: LoggingInterceptor.Builder, chainMs: Long, isSuccessful: Boolean,
                           code: Int, headers: String, bodyString: String, segments: List<String>, message: String, responseUrl: String) {
 
         val responseBody = LINE_SEPARATOR + BODY_TAG + LINE_SEPARATOR + getJsonString(bodyString)
@@ -90,7 +90,7 @@ internal class Printer(private val logger: Logger) {
         flush(builder, false)
     }
 
-    fun printFileRequest(builder: Builder, request: Request) {
+    fun printFileRequest(builder: LoggingInterceptor.Builder, request: Request) {
         if (builder.decoration) {
             log(REQUEST_UP_LINE)
         }
@@ -107,7 +107,7 @@ internal class Printer(private val logger: Logger) {
         flush(builder, true)
     }
 
-    fun printFileResponse(builder: Builder, chainMs: Long, isSuccessful: Boolean,
+    fun printFileResponse(builder: LoggingInterceptor.Builder, chainMs: Long, isSuccessful: Boolean,
                           code: Int, headers: String, segments: List<String>, message: String) {
         if (builder.decoration) {
             log(RESPONSE_UP_LINE)

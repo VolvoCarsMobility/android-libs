@@ -3,10 +3,86 @@ package com.drivekitt.common.utils.logging
 import okhttp3.Interceptor
 import okhttp3.Response
 import okhttp3.ResponseBody
+import okhttp3.internal.platform.Platform
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
+enum class Level {
+    /**
+     * No logs.
+     */
+    NONE,
+    /**
+     *
+     * Example:
+     * <pre>`- URL
+     * - Method
+     * - Headers
+     * - Body
+    `</pre> *
+     */
+    BASIC,
+    /**
+     *
+     * Example:
+     * <pre>`- URL
+     * - Method
+     * - Headers
+    `</pre> *
+     */
+    HEADERS,
+    /**
+     *
+     * Example:
+     * <pre>`- URL
+     * - Method
+     * - Body
+    `</pre> *
+     */
+    BODY
+}
+
+
+interface LoggerFactory {
+    fun createLogger(): Logger
+}
+
+interface Logger {
+    fun log(level: Int, tag: String, msg: String)
+
+    companion object {
+
+        val DEFAULT: Logger = object : Logger {
+            override fun log(level: Int, tag: String, msg: String) {
+                Platform.get().log(Platform.INFO, msg, null)
+                //Timber.tag(tag).log(level, message);
+            }
+        }
+    }
+}
+
 class LoggingInterceptor internal constructor(private val builder: Builder) : Interceptor {
+
+    class Builder {
+
+        companion object {
+            private var TAG = "OkHttp"
+        }
+
+        var type = Platform.INFO
+        var requestTag: String = TAG
+        var responseTag: String = TAG
+        var level = Level.BASIC
+        var loggerFactory: LoggerFactory? = null
+        var decoration = true
+
+        internal fun getTag(isRequest: Boolean): String = if (isRequest) requestTag else responseTag
+
+        @Suppress("unused")
+        fun build(): LoggingInterceptor {
+            return LoggingInterceptor(this)
+        }
+    }
 
     @Throws(IOException::class)
     override fun intercept(chain: Interceptor.Chain): Response {
