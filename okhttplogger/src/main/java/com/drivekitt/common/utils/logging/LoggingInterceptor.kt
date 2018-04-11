@@ -1,7 +1,13 @@
 package com.drivekitt.common.utils.logging
 
+import android.util.Log
 import okhttp3.Interceptor
 import okhttp3.internal.platform.Platform
+
+typealias Logger = (level: Int, tag: String, msg: String) -> Unit
+
+fun createLoggerInterceptor(action: LoggingInterceptor.Builder.() -> Unit): LoggingInterceptor =
+        LoggingInterceptor.Builder().apply(action).build()
 
 interface LoggingInterceptor : Interceptor {
     enum class Level {
@@ -60,18 +66,7 @@ interface LoggingInterceptor : Interceptor {
         }
     }
 
-    interface Logger {
-        fun log(level: Int, tag: String, msg: String)
-    }
-
     companion object {
-        val DEFAULT_LOGGER: Logger = object : Logger {
-            override fun log(level: Int, tag: String, msg: String) {
-                Platform.get().log(Platform.INFO, msg, null)
-            }
-        }
+        val DEFAULT_LOGGER: Logger = { level, tag, msg -> Log.println(level, tag, msg) }
     }
 }
-
-fun createLoggerInterceptor(action: LoggingInterceptor.Builder.() -> Unit): LoggingInterceptor =
-        LoggingInterceptor.Builder().apply(action).build()

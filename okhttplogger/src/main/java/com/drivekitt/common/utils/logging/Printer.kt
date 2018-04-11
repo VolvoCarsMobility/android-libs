@@ -9,7 +9,7 @@ import org.json.JSONObject
 import java.io.IOException
 import java.util.*
 
-internal class Printer(private val logger: LoggingInterceptor.Logger) {
+internal class Printer(private val logger: Logger) {
     private val logList = LinkedList<String>()
 
     private fun flush(builder: LoggingInterceptor.Builder, isRequest: Boolean) {
@@ -18,7 +18,7 @@ internal class Printer(private val logger: LoggingInterceptor.Logger) {
         var i = 0
         synchronized(Printer::class.java) {
             for (line in logList) {
-                logger.log(type, tag + i++, line)
+                logger.invoke(type, tag + i++, line)
                 if (i >= 10) i = 0
             }
             logList.clear()
