@@ -9,7 +9,7 @@ import org.json.JSONObject
 import java.io.IOException
 import java.util.*
 
-internal class Printer(private val logger: Logger) {
+internal class Printer(private val logger: LoggingInterceptor.Logger) {
     private val logList = LinkedList<String>()
 
     private fun flush(builder: LoggingInterceptor.Builder, isRequest: Boolean) {
@@ -54,7 +54,7 @@ internal class Printer(private val logger: Logger) {
 
         logLines(arrayOf(URL_TAG + request.url()), builder.decoration, false)
         logLines(getRequest(request, builder.level), builder.decoration, true)
-        if (builder.level == Level.BASIC || builder.level == Level.BODY) {
+        if (builder.level == LoggingInterceptor.Level.BASIC || builder.level == LoggingInterceptor.Level.BODY) {
             logLines(requestBody.split(LINE_SEPARATOR.toRegex()).dropLastWhile({ it.isEmpty() }).toTypedArray(), builder.decoration, true)
         }
 
@@ -71,7 +71,7 @@ internal class Printer(private val logger: Logger) {
         val responseBody = LINE_SEPARATOR + BODY_TAG + LINE_SEPARATOR + getJsonString(bodyString)
         val urlLine = arrayOf(URL_TAG + responseUrl, N)
         val response = getResponse(headers, chainMs, code, isSuccessful,
-            builder.level, segments, message)
+                builder.level, segments, message)
 
         if (builder.decoration) {
             log(RESPONSE_UP_LINE)
@@ -80,7 +80,7 @@ internal class Printer(private val logger: Logger) {
         logLines(urlLine, builder.decoration, true)
         logLines(response, builder.decoration, true)
 
-        if (builder.level == Level.BASIC || builder.level == Level.BODY) {
+        if (builder.level == LoggingInterceptor.Level.BASIC || builder.level == LoggingInterceptor.Level.BODY) {
             logLines(responseBody.split(LINE_SEPARATOR.toRegex()).dropLastWhile({ it.isEmpty() }).toTypedArray(), builder.decoration, true)
         }
         if (builder.decoration) {
@@ -97,7 +97,7 @@ internal class Printer(private val logger: Logger) {
 
         logLines(arrayOf(URL_TAG + request.url()), builder.decoration, false)
         logLines(getRequest(request, builder.level), builder.decoration, true)
-        if (builder.level == Level.BASIC || builder.level == Level.BODY) {
+        if (builder.level == LoggingInterceptor.Level.BASIC || builder.level == LoggingInterceptor.Level.BODY) {
             logLines(OMITTED_REQUEST, builder.decoration, true)
         }
         if (builder.decoration) {
@@ -113,7 +113,7 @@ internal class Printer(private val logger: Logger) {
             log(RESPONSE_UP_LINE)
         }
         logLines(getResponse(headers, chainMs, code, isSuccessful,
-            builder.level, segments, message), builder.decoration, true)
+                builder.level, segments, message), builder.decoration, true)
         logLines(OMITTED_RESPONSE, builder.decoration, true)
         if (builder.decoration) {
             log(END_LINE)
@@ -152,29 +152,29 @@ internal class Printer(private val logger: Logger) {
             return TextUtils.isEmpty(line) || N == line || T == line || TextUtils.isEmpty(line.trim { it <= ' ' })
         }
 
-        fun getRequest(request: Request, level: Level): Array<String> {
+        fun getRequest(request: Request, level: LoggingInterceptor.Level): Array<String> {
             val log: String
             val header = request.headers().toString()
-            val loggableHeader = level == Level.HEADERS || level == Level.BASIC
+            val loggableHeader = level == LoggingInterceptor.Level.HEADERS || level == LoggingInterceptor.Level.BASIC
             log = METHOD_TAG + request.method() + DOUBLE_SEPARATOR +
-                if (isEmpty(header)) "" else if (loggableHeader) HEADERS_TAG + LINE_SEPARATOR + dotHeaders(header) else ""
+                    if (isEmpty(header)) "" else if (loggableHeader) HEADERS_TAG + LINE_SEPARATOR + dotHeaders(header) else ""
             return log.split(LINE_SEPARATOR.toRegex()).dropLastWhile({ it.isEmpty() }).toTypedArray()
         }
 
         fun getResponse(header: String, tookMs: Long, code: Int, isSuccessful: Boolean,
-                        level: Level, segments: List<String>, message: String): Array<String> {
+                        level: LoggingInterceptor.Level, segments: List<String>, message: String): Array<String> {
             val log: String
-            val loggableHeader = level == Level.HEADERS || level == Level.BASIC
+            val loggableHeader = level == LoggingInterceptor.Level.HEADERS || level == LoggingInterceptor.Level.BASIC
             val segmentString = slashSegments(segments)
             val addon = when {
                 isEmpty(header) -> ""
                 loggableHeader -> HEADERS_TAG + LINE_SEPARATOR +
-                    dotHeaders(header)
+                        dotHeaders(header)
                 else -> ""
             }
             log = ((if (!TextUtils.isEmpty(segmentString)) "$segmentString - " else "") + "is success : "
-                + isSuccessful + " - " + RECEIVED_TAG + tookMs + "ms" + DOUBLE_SEPARATOR + STATUS_CODE_TAG +
-                code + " / " + message + DOUBLE_SEPARATOR + addon)
+                    + isSuccessful + " - " + RECEIVED_TAG + tookMs + "ms" + DOUBLE_SEPARATOR + STATUS_CODE_TAG +
+                    code + " / " + message + DOUBLE_SEPARATOR + addon)
 
             return log.split(LINE_SEPARATOR.toRegex()).dropLastWhile({ it.isEmpty() }).toTypedArray()
         }
